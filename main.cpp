@@ -16,37 +16,129 @@ enum class BirdColor : int
     Unknown
 };
 
+// Реализация паттерна "Стратегия" для активности птиц
+
+enum class ActivityStrategyEnum : int
+{
+    Fly,
+    Sing,
+    Swim,
+    None
+};
+
+class ActivityStrategy
+{
+public:
+    virtual ~ActivityStrategy() {}
+    virtual void Activity() = 0;
+};
+
+class FlyStrategy : public ActivityStrategy
+{
+    void Activity() override { cout << "Flying high..."; }
+};
+
+class SingStrategy : public ActivityStrategy
+{
+    void Activity() override { cout << "Singing beautifully..."; }
+};
+
+class SwimStrategy : public ActivityStrategy
+{
+    void Activity() override { cout << "Swimming fast..."; }
+};
+
+// Фабричный метод для создания стратегий активности
+ActivityStrategy* CreateActivityStrategy(ActivityStrategyEnum activnoct)
+{
+    switch(activnoct)
+    {
+        case ActivityStrategyEnum::Fly: return new FlyStrategy;
+        case ActivityStrategyEnum::Sing: return new SingStrategy;
+        case ActivityStrategyEnum::Swim: return new SwimStrategy;
+        default: return nullptr;
+    }
+}
+
 class Bird
 {
 private:
      BirdColor Color;
      double Weight;
 
+     ActivityStrategy* ActivityCases;
+
+void ActivityUsingStrategy()
+    {
+        if(ActivityCases == nullptr)
+        {
+            cout << "No activity";
+            return;
+        }
+
+        else
+        {
+            ActivityCases->Activity();
+        }
+    }
+
+void DetectActivityStatus()
+    {
+        if(IsActive())
+        {
+            cout << "ACTIVE";
+        }
+        else
+        {
+            cout << "RESTING";
+        }
+    }
+
 protected:
     bool BirdIsActive;
 
 public:
-    Bird(BirdColor color) : Color(color), Weight(0.0), BirdIsActive(false)
+    Bird(BirdColor color) : Color(color), Weight(0.0), BirdIsActive(false), ActivityCases (nullptr)
     {
         BirdIsActive = static_cast<bool>(rand()%2);
     }
-virtual ~Bird() {}
+
+virtual ~Bird()
+{
+    if(ActivityCases != nullptr) delete ActivityCases;
+}
+
+
 bool IsActive() const { return BirdIsActive; }
 
 BirdColor GetColor() const { return Color; }
 
 double GetWeight() const { return Weight; }
-virtual void Activity()
+
+virtual void PrintType() = 0;
+virtual void StrannoePovedenie() = 0;
+
+   void Activity()
     {
-        if(IsActive())
-        {
-            cout << "Bird is ACTIVE... ";
-        }
-        else
-        {
-            cout << "Bird is RESTING... ";
-        }
+        // 1. Вывести тип птицы
+        PrintType();
+        cout << " : ";
+
+        // 2. Определить состояние активности
+        DetectActivityStatus();
+        cout << " : ";
+
+        // 3. Происходит странное поведение
+        StrannoePovedenie();
+        cout << " : ";
+
+        // 4. Выполнить активность согласно стратегии
+        ActivityUsingStrategy();
+
+        cout << endl;
     }
+
+    void SetActivityStrategy(ActivityStrategy* activnoct) { ActivityCases = activnoct; }
 };
 
 class Parrot : public Bird
@@ -54,15 +146,13 @@ class Parrot : public Bird
 public:
     Parrot();
     ~Parrot() {}
-    void Activity() override;
+    void PrintType() { cout << "Parrot"; }
+    void StrannoePovedenie() { cout << "Hiding his head..."; }
 };
 
-Parrot :: Parrot() : Bird (BirdColor::Yellow){}
-
-void Parrot::Activity()
+Parrot :: Parrot() : Bird (BirdColor::Yellow)
 {
-    Bird::Activity();
-    cout << "Parrot mimics sounds" << endl;
+    SetActivityStrategy(CreateActivityStrategy(ActivityStrategyEnum::Sing));
 }
 
 class Penguin : public Bird
@@ -70,15 +160,13 @@ class Penguin : public Bird
 public:
     Penguin();
     ~Penguin() {}
-    void Activity() override;
+    void PrintType() { cout << "Penguin"; }
+    void StrannoePovedenie() { cout << "Pushes the other one..."; }
 };
 
-Penguin :: Penguin() : Bird (BirdColor::White){}
-
-void Penguin::Activity()
+Penguin :: Penguin() : Bird (BirdColor::White)
 {
-    Bird::Activity();
-    cout << "Penguin waddles" << endl;
+    SetActivityStrategy(CreateActivityStrategy(ActivityStrategyEnum::Swim));
 }
 
 class Vorona : public Bird
@@ -86,17 +174,16 @@ class Vorona : public Bird
 public:
     Vorona();
     ~Vorona() {}
-    void Activity() override;
+    void PrintType() { cout << "Vorona"; }
+    void StrannoePovedenie() { cout << "Throws stones..."; }
 };
 
-Vorona :: Vorona() : Bird (BirdColor::Black){}
-
-void Vorona::Activity()
+Vorona :: Vorona() : Bird (BirdColor::Black)
 {
-    Bird::Activity();
-    cout << "Vorona scavenges" << endl;
+    SetActivityStrategy(CreateActivityStrategy(ActivityStrategyEnum::Fly));
 }
 
+//Реализация паттерна "Фабричный метод"
 enum class BirdType : int
 {
     Penguin = 1,
